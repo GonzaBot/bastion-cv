@@ -1,0 +1,6 @@
+# RFC 9116. Reemplazar el contacto por el real antes de publicar en un
+# dominio propio — este archivo se sirve tal cual, sin generar nada.
+Contact: mailto:reemplazar@tu-dominio.example
+Preferred-Languages: es, en
+Canonical: https://tu-dominio.example/.well-known/security.txt
+Expires: 2027-08-30T00:00:00.000Z

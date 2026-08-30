@@ -1,0 +1,14 @@
+{
+  "name": "bastion-cv",
+  "private": true,
+  "description": "Suite de pruebas del navegador (jsdom) para la página estática. El sitio en sí no tiene dependencias JS: esto es sólo tooling de test.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node herramientas/correr_pruebas_node.js"
+  },
+  "devDependencies": {
+    "jsdom": "24.1.3"
+  }
+}

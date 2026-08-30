@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node (sólo tooling de test — package-lock.json SÍ se versiona)
+node_modules/
+
+# Datos y secretos: nunca versionar
+datos/
+.env
+.env.*
+!.env.ejemplo
+
+# Editor / SO
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+
+# Docker
+docker-compose.override.yml

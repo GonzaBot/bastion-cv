@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Flask (servidor)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "servidor.app",
+      "console": "integratedTerminal",
+      "env": { "CLAVE_SECRETA": "clave_de_desarrollo_no_usar_en_produccion" }
+    }
+  ]
+}

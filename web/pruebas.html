@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pruebas · módulo Validación</title>
+
+<!-- script-src 'self': sin inline, sin CDN. Los scripts son archivos propios. -->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+
+<style>
+:root {
+  --papel: #EDEBE2; --tinta: #161A17; --bloque: #22402F;
+  --acero: #545E58; --regla: #C9C5B8;
+  --ok: #1F6B3B; --falla: #9B2F16;
+  --dato: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+  --display: "Arial Narrow", "Roboto Condensed", "Liberation Sans Narrow", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--papel); color: var(--tinta);
+  font-family: var(--dato); font-size: 0.9rem; line-height: 1.6;
+}
+.hoja { max-width: 56rem; margin: 0 auto; padding: 0 1.5rem 4rem; }
+header {
+  background: var(--bloque); color: #F2F0E8;
+  padding: 2.5rem 1.5rem; border-bottom: 6px solid #C0850C;
+  margin-bottom: 2.5rem;
+}
+header div { max-width: 53rem; margin: 0 auto; }
+h1 {
+  font-family: var(--display); text-transform: uppercase;
+  font-size: clamp(1.8rem, 7vw, 3rem); margin: 0 0 0.4rem; letter-spacing: -0.01em;
+}
+header p { margin: 0; color: #C9CFC8; max-width: 60ch; }
+.fase {
+  display: inline-block; font-size: 0.7rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: #E0A93C; margin-bottom: 0.8rem;
+}
+h2 {
+  font-family: var(--display); text-transform: uppercase;
+  font-size: 1.15rem; letter-spacing: 0.05em;
+  margin: 2.5rem 0 0.75rem; padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--bloque);
+}
+ul { list-style: none; margin: 0; padding: 0; }
+li { padding: 0.5rem 0 0.5rem 1.6rem; border-bottom: 1px solid var(--regla); position: relative; font-size: 0.84rem; }
+li::before { position: absolute; left: 0; font-weight: bold; }
+li.ok { color: var(--acero); }
+li.ok::before { content: "\2713"; color: var(--ok); }
+li.falla { color: var(--falla); }
+li.falla::before { content: "\2717"; color: var(--falla); }
+.resumen {
+  font-family: var(--display); text-transform: uppercase;
+  letter-spacing: 0.06em; font-size: 1.3rem;
+  padding: 1rem 1.25rem; margin: 0;
+  border-left: 6px solid currentColor;
+}
+.resumen.ok { color: var(--ok); }
+.resumen.falla { color: var(--falla); }
+.aviso {
+  font-size: 0.8rem; color: var(--acero);
+  border-top: 1px solid var(--regla); margin-top: 3rem; padding-top: 1.25rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --papel:#14170F; --tinta:#E6E4D9; --bloque:#1B231C; --acero:#9AA398; --regla:#333A32; --ok:#7FBE93; --falla:#E8705A; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <p class="fase">Suite completa · validación e interfaz</p>
+    <h1>Pruebas · Validación</h1>
+    <p>
+      Estas pruebas se escribieron antes que el código. Mientras el módulo no exista,
+      lo correcto es que fallen todas: eso confirma que la prueba realmente prueba algo. Las secciones 1 a 6 son puras y corren en cualquier lado; las 7 a 10 necesitan DOM real.
+    </p>
+  </div>
+</header>
+
+<div class="hoja">
+  <div id="resultados">Cargando…</div>
+
+  <p class="aviso">
+    Abrir con un servidor local, no con doble clic:<br>
+    <code>python3 -m http.server 8000</code> y entrar a <code>http://localhost:8000/pruebas.html</code>.<br>
+    Con <code>file://</code> la política de contenido y la carga de scripts se comportan distinto.
+  </p>
+</div>
+
+<script src="js/mini-test.js"></script>
+<script src="js/casos.js"></script>
+<script src="js/validacion.js"></script>
+<script src="js/claves.js"></script>
+<script src="js/interfaz.js"></script>
+<script src="js/validacion.test.js"></script>
+<script src="js/interfaz.test.js"></script>
+<script src="js/casos.test.js"></script>
+<script src="js/claves.test.js"></script>
+<script src="js/correr-pruebas.js"></script>
+</body>
+</html>
