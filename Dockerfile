@@ -1,6 +1,6 @@
 # ── Build: dependencias en un venv aislado, con pip y su caché que nunca
 #    llegan a la imagen final ──────────────────────────────────────────────
-FROM python:3.12-slim AS build
+FROM python:3.14-slim AS build
 
 WORKDIR /app
 COPY requirements.txt .
@@ -10,7 +10,7 @@ RUN python3 -m venv /venv \
 
 # ── Runtime: sólo el venv ya armado + el código. Sin pip, sin compiladores,
 #    sin caché de descargas: lo que no está no se puede explotar. ─────────
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 RUN useradd --create-home --uid 1000 app
 WORKDIR /app
