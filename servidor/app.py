@@ -20,6 +20,7 @@ import time
 from pathlib import Path
 
 from flask import Flask, Response, jsonify, request, send_from_directory
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.serving import WSGIRequestHandler
 
 from servidor import cabeceras as mod_cabeceras
@@ -79,12 +80,22 @@ def crear_app(config=None):
         JSON_SORT_KEYS=False,
         ADMIN_USUARIO=os.environ.get("ADMIN_USUARIO", "admin"),
         ADMIN_CLAVE=os.environ.get("ADMIN_CLAVE", ""),
+        DETRAS_DE_PROXY=os.environ.get("DETRAS_DE_PROXY") == "1",
     )
     if config:
         app.config.update(config)
 
     _advertir_si_secreto_debil("CLAVE_SECRETA", os.environ.get("CLAVE_SECRETA"), minimo=32)
     _advertir_si_secreto_debil("ADMIN_CLAVE", app.config["ADMIN_CLAVE"], minimo=12)
+
+    if app.config["DETRAS_DE_PROXY"]:
+        # Confía en UN proxy inverso propio delante (nginx). Sin esto, detrás
+        # de un proxy que termina TLS, wsgi.url_scheme llega siempre en "http"
+        # (Flask habla HTTP plano con nginx en localhost) y request.is_secure
+        # da falso para siempre — HSTS no se manda nunca, aunque el visitante
+        # sí esté en HTTPS de punta a punta.
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1,
+                                 x_host=0, x_port=0, x_prefix=0)
 
     tokens = Tokens()
     limite_contacto = LimiteDoble(maximo_por_ip=5, ventana_por_ip=300,
@@ -110,13 +121,11 @@ def crear_app(config=None):
     # ── Utilidades ──────────────────────────────────────────────────────
 
     def cliente():
-        """IP del cliente. NO se confía en X-Forwarded-For salvo que se declare
-        explícitamente un proxy: si no, cualquiera falsea su IP y anula el
-        límite de tasa mandando una cabecera."""
-        if os.environ.get("DETRAS_DE_PROXY") == "1":
-            reenviado = request.headers.get("X-Forwarded-For", "")
-            if reenviado:
-                return reenviado.split(",")[0].strip()
+        """IP del cliente. Con DETRAS_DE_PROXY=1, ProxyFix ya reescribió
+        request.remote_addr a partir de X-Forwarded-For (confiando en UN
+        salto: el del proxy inverso propio). Sin la variable, esa cabecera
+        se ignora del todo — si no, cualquiera la manda y falsea su IP,
+        anulando el límite de tasa."""
         return request.remote_addr or "desconocido"
 
     def cuerpo_json():

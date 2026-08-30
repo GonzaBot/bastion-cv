@@ -177,8 +177,9 @@ redirecciones.
 - `tiene_inyeccion_de_cabecera` bloquea URLs legítimas que contengan `%0A`
   codificado. Falso positivo aceptado a cambio de la cobertura.
 - HSTS sólo se emite sobre HTTPS. Detrás de un proxy TLS hay que definir
-  `DETRAS_DE_PROXY=1` para que el servidor lo detecte, y sólo si el proxy
-  realmente reescribe `X-Forwarded-For`.
+  `DETRAS_DE_PROXY=1` para que el servidor lo detecte (ver "Publicar detrás
+  de nginx" abajo), y sólo si el proxy realmente reescribe `X-Forwarded-For`
+  y `X-Forwarded-Proto`.
 - El panel de mensajes usa Basic Auth sin sesión: cada pedido reenvía usuario
   y clave. Cómodo para uso personal, pero sobre HTTP plano viaja en claro
   (ver "Panel de mensajes" arriba).
@@ -197,6 +198,16 @@ redirecciones.
 
 `frame-ancestors`, HSTS y `X-Content-Type-Options` ya se emiten desde Flask.
 Si se sirve detrás de nginx, no duplicarlos: elegir un solo lugar donde vivan.
+
+Con `DETRAS_DE_PROXY=1`, el servidor arma `ProxyFix` (de Werkzeug) para
+confiar en UN salto de `X-Forwarded-For` y `X-Forwarded-Proto`: sin esto,
+detrás de un proxy que termina TLS, `request.is_secure` da falso siempre y
+HSTS no se manda nunca, aunque el visitante esté en HTTPS de punta a punta.
+Poner esa variable sólo si el proxy inverso realmente reescribe esas dos
+cabeceras — si no, cualquiera las manda y falsea su IP o su esquema.
+
+Guía completa de punta a punta (DuckDNS + VPS + nginx + certbot) en
+[`DESPLIEGUE.md`](DESPLIEGUE.md).
 
 ## Licencia
 

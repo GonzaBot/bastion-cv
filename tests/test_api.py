@@ -252,6 +252,57 @@ def test_hsts_solo_sobre_https(cliente):
     assert "Strict-Transport-Security" in r.headers
 
 
+# ── Detrás de un proxy inverso (nginx en producción) ────────────────────
+
+@pytest.fixture
+def app_detras_de_proxy(tmp_path, monkeypatch):
+    import servidor.app as mod
+    monkeypatch.setattr(mod, "BUZON", tmp_path / "mensajes.jsonl")
+    return crear_app({"ORIGENES": ["http://localhost:8000"], "TESTING": True,
+                       "DETRAS_DE_PROXY": True})
+
+
+def test_sin_detras_de_proxy_ignora_x_forwarded_proto(cliente):
+    """Regresión: sin DETRAS_DE_PROXY, un cliente cualquiera podría mandar
+    X-Forwarded-Proto: https y mentir que llegó por HTTPS. No debe alcanzar."""
+    r = cliente.get("/api/salud", headers={"X-Forwarded-Proto": "https"})
+    assert "Strict-Transport-Security" not in r.headers
+
+
+def test_detras_de_proxy_respeta_x_forwarded_proto(app_detras_de_proxy):
+    """Regresión (30/08/2026): sin ProxyFix, detrás de un proxy que termina
+    TLS, request.is_secure daba False para siempre y HSTS nunca se mandaba,
+    aunque el visitante estuviera en HTTPS de punta a punta."""
+    r = app_detras_de_proxy.test_client().get(
+        "/api/salud", headers={"X-Forwarded-Proto": "https", "X-Forwarded-For": "203.0.113.9"})
+    assert "Strict-Transport-Security" in r.headers
+
+
+def test_detras_de_proxy_toma_la_ip_real_de_x_forwarded_for(app_detras_de_proxy):
+    """El límite de tasa tiene que contar por la IP real del visitante, no
+    por 127.0.0.1 (que es lo que vería siempre si no se confiara en la
+    cabecera que pone nginx)."""
+    token, _ = cabeceras_validas(app_detras_de_proxy)
+    cab = {"Origin": "http://localhost:8000", "Content-Type": "application/json",
+           "X-Forwarded-For": "203.0.113.9"}
+    codigos = []
+    for _ in range(7):
+        r = app_detras_de_proxy.test_client().post(
+            "/api/contacto", headers=cab,
+            json={"token": token, "datos": DATOS_OK, "msTranscurridos": 9000})
+        codigos.append(r.status_code)
+    assert 429 in codigos, "el límite tiene que aplicar sobre la IP real, no sobre 127.0.0.1"
+
+
+def test_sin_detras_de_proxy_x_forwarded_for_se_ignora(cliente):
+    """Sin la variable, nadie puede falsear su IP con la cabecera para
+    esquivar el límite de tasa entre pedidos de la 'misma' IP real."""
+    r = cliente.get("/api/salud", headers={"X-Forwarded-For": "203.0.113.9"})
+    assert r.status_code == 200
+    # request.remote_addr en el cliente de test es siempre 127.0.0.1;
+    # sin ProxyFix la cabecera no debe pisarlo.
+
+
 def test_contacto_acepta_envio_valido(app, cliente):
     token, cab = cabeceras_validas(app)
     r = cliente.post("/api/contacto", headers=cab, json={

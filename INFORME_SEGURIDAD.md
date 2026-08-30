@@ -303,3 +303,36 @@ Dockerfile multi-stage y el `docker-compose.yml` endurecido, confirmado
 `(healthy)` y respondiendo con las tres páginas renderizando sin ninguna
 violación de CSP.
 
+---
+
+## 8. Tercera pasada — el hallazgo que sólo aparece al desplegar de verdad
+
+Al preparar la guía de despliegue en un VPS real detrás de nginx (ver
+[`DESPLIEGUE.md`](DESPLIEGUE.md)) apareció un gap que ninguna prueba local
+podía detectar, porque hace falta un proxy TLS real delante para que se
+manifieste:
+
+**`request.is_secure` daba falso para siempre detrás de un proxy que
+termina TLS.** nginx habla HTTP plano con Flask en `localhost:8000` (el TLS
+se termina en nginx); sin nada que traduzca eso, `wsgi.url_scheme` en el
+`environ` de Flask siempre decía `"http"`, sin importar que el visitante
+haya llegado por HTTPS. Como `aplicar_cabeceras(respuesta, https=request.is_secure, ...)`
+decide con eso si manda `Strict-Transport-Security`, **HSTS no se hubiera
+mandado nunca** en un despliegue real detrás de nginx — exactamente el
+escenario para el que existe la variable `DETRAS_DE_PROXY`.
+
+**Arreglo:** `werkzeug.middleware.proxy_fix.ProxyFix` (ya viene con
+Werkzeug, sin dependencia nueva), aplicado sólo cuando `DETRAS_DE_PROXY=1`,
+confiando en un único salto de `X-Forwarded-Proto` y `X-Forwarded-For`. De
+paso, esto reemplaza el parseo manual de `X-Forwarded-For` que tenía
+`cliente()` por el mecanismo estándar de Werkzeug — mismo comportamiento,
+menos código propio para mantener.
+
+Tests de regresión: `test_detras_de_proxy_respeta_x_forwarded_proto` (HSTS
+aparece con `X-Forwarded-Proto: https` sólo si `DETRAS_DE_PROXY=1`),
+`test_detras_de_proxy_toma_la_ip_real_de_x_forwarded_for` (el límite de
+tasa cuenta por la IP real del visitante, no por la del proxy), y dos más
+confirmando que sin la variable ninguna de las dos cabeceras se respeta.
+
+**Verificación:** 155 tests de pytest, todos verdes.
+
