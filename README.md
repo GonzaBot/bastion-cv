@@ -5,15 +5,42 @@
 > Reemplazar `TU-USUARIO` por el usuario real de GitHub antes de publicar,
 > para que el badge apunte al workflow correcto.
 
-Página personal con dos herramientas funcionando y un backend Flask que las
-respalda. Todo el código es propio: sin frameworks de frontend, sin CDN, sin
-dependencias JavaScript.
+**El objetivo de este proyecto no es "una página de CV con algunos cuidados
+de seguridad" — es al revés.** La idea de fondo fue construir una aplicación
+web tan segura y endurecida como sea razonablemente posible, siguiendo los
+estándares más exigentes del rubro, y usar una página de CV como vehículo
+real para demostrarlo — no un ejemplo de juguete, una app que efectivamente
+recibe tráfico, guarda datos de terceros, y fue atacada en serio para
+encontrarle los huecos antes de publicarla.
 
 El nombre no es casualidad: un *bastion host* es, en seguridad, un servidor
-a propósito expuesto a la red y endurecido para resistir el ataque. Esa es
-la idea acá — un sitio personal auditado y defendido en capas, no sólo
-"funcional". El informe completo de la auditoría, con comandos y evidencia
-de cada ataque probado, está en [`INFORME_SEGURIDAD.md`](INFORME_SEGURIDAD.md).
+a propósito expuesto a la red y endurecido para resistir el ataque — la
+metáfora exacta de este proyecto. Todo el código es propio: sin frameworks
+de frontend, sin CDN, sin dependencias JavaScript de producción, para que la
+superficie de ataque real quede acotada a lo que efectivamente se escribió y
+se auditó acá. Lo que ve un visitante (formulario de contacto, analizador de
+cabeceras, generador de contraseñas) es el "qué"; el "para qué" es todo lo
+de abajo.
+
+El informe completo de la auditoría propia contra la app corriendo en vivo
+— comandos, evidencia y arreglo de cada hallazgo — está en
+[`INFORME_SEGURIDAD.md`](INFORME_SEGURIDAD.md).
+
+## Estándares seguidos
+
+No es "lo hicimos seguro" en abstracto — cada fila es una categoría o
+estándar reconocido, con la implementación concreta que le corresponde acá.
+
+| Estándar / categoría | Cómo se aplica en este proyecto |
+|---|---|
+| OWASP Top 10 — A01 Control de acceso roto | Panel de administración con Basic Auth + límite de tasa propio, deshabilitado por completo (503) si no hay clave configurada, nunca "abierto por defecto" |
+| OWASP Top 10 — A02 Fallas criptográficas | Tokens anti-CSRF firmados con HMAC-SHA256 comparados en tiempo constante; contraseñas generadas con `crypto.getRandomValues` y descarte explícito de sesgo de módulo |
+| OWASP Top 10 — A03 Inyección | Escape de HTML antes de imprimir cualquier dato ingresado por un visitante; detección de inyección de cabeceras de correo; la misma validación se re-ejecuta en el servidor aunque el cliente ya la haya pasado |
+| OWASP Top 10 — A05 Configuración de seguridad incorrecta | CSP Nivel 3 sin `unsafe-inline` en ningún lado, HSTS, `X-Frame-Options`, `Cross-Origin-*-Policy`, sin cabecera `Server`; contenedor sin root, filesystem de solo lectura, capacidades Linux caídas |
+| OWASP Top 10 — A08 Fallas de integridad de software y datos | Dependencias fijadas a versión exacta (nunca rangos abiertos), Dependabot vigilando pip/npm/Docker/Actions, CI corriendo la suite completa en cada cambio |
+| OWASP Top 10 — A10 Server-Side Request Forgery | `servidor/red.py`: resolución DNS única y con timeout, rechazo de toda IP no pública (incluidas variantes IPv6 mapeadas e IPs codificadas en decimal/hex/octal), conexión contra la IP ya validada, sin seguir redirecciones |
+| CSP Nivel 3 (W3C) | Fuentes de estilo permitidas por hash SHA-256 del contenido real, no por `unsafe-inline` |
+| RFC 9116 | `security.txt` en `/.well-known/` para divulgación responsable de vulnerabilidades |
 
 ## Arranque rápido en Debian
 
