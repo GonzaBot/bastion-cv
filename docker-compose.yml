@@ -1,0 +1,26 @@
+services:
+  cv-gonza:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      CLAVE_SECRETA: ${CLAVE_SECRETA}
+      ORIGENES: ${ORIGENES:-http://localhost:8000,http://127.0.0.1:8000}
+      DETRAS_DE_PROXY: ${DETRAS_DE_PROXY:-0}
+      ADMIN_USUARIO: ${ADMIN_USUARIO:-admin}
+      ADMIN_CLAVE: ${ADMIN_CLAVE}
+    volumes:
+      - ./datos:/app/datos
+    restart: unless-stopped
+
+    # ── Endurecido: si algo dentro del proceso Flask se compromete, esto
+    #    acota cuánto puede hacer con el contenedor y con el host. ─────────
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 256m
+    pids_limit: 128

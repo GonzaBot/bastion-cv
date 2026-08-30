@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gonza — Ciberseguridad e Infraestructura</title>
+<meta name="description" content="Gonza — ciberseguridad e infraestructura. Seguridad defensiva, segmentación de redes y endurecimiento de sistemas en producción. Rivera, Uruguay.">
+<meta name="author" content="Gonza">
+
+<!-- frame-ancestors, HSTS y X-Content-Type-Options NO funcionan por meta: van por cabecera HTTP. -->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+
+<style>
+/* ═══════════════════════════════════════════════
+   TOKENS
+   Paleta: papel de obra, pino, ámbar de señalización.
+   El ámbar está separado en tres roles porque el mismo
+   valor no pasa contraste sobre claro y sobre oscuro.
+   ═══════════════════════════════════════════════ */
+:root {
+  --papel:         #EDEBE2;
+  --papel-2:       #E3E0D5;
+  --tinta:         #161A17;
+
+  --bloque:        #22402F;
+  --sobre-bloque:  #F2F0E8;
+  --sobre-bloque-2:#C9CFC8;
+
+  --acento:        #22402F;
+  --ambar:         #C0850C;   /* solo trazos y fondos, nunca texto chico */
+  --ambar-texto:   #8A5A05;   /* texto sobre papel   — 4.6:1 */
+  --ambar-bloque:  #E0A93C;   /* texto sobre bloque  — 5.0:1 */
+  --acero:         #545E58;   /* texto secundario    — 5.6:1 */
+  --regla:         #C9C5B8;
+  --alerta:        #9B2F16;
+
+  --display: "Arial Narrow", "Roboto Condensed", "Liberation Sans Narrow", "Helvetica Neue", system-ui, sans-serif;
+  --cuerpo:  Charter, "Bitstream Charter", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --dato:    ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--cuerpo);
+  font-size: 1.0625rem;
+  line-height: 1.62;
+  text-underline-offset: 0.18em;
+}
+
+.hoja { max-width: 60rem; margin: 0 auto; padding: 0 1.5rem 4rem; }
+
+.saltar {
+  position: absolute; left: -9999px; top: 0;
+  background: var(--bloque); color: var(--sobre-bloque);
+  padding: 0.9rem 1.4rem;
+  font-family: var(--dato); font-size: 0.8rem;
+  z-index: 10;
+}
+.saltar:focus { left: 0; }
+
+/* ── Carátula ── */
+
+.caratula {
+  background: var(--bloque);
+  color: var(--sobre-bloque);
+  padding: 3.5rem 1.5rem 0;
+  border-bottom: 6px solid var(--ambar);
+  margin-bottom: 3.5rem;
+}
+.caratula-interior { max-width: 57rem; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--dato); font-size: 0.72rem;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ambar-bloque); margin: 0 0 1rem;
+}
+
+.caratula h1 {
+  font-family: var(--display);
+  font-size: clamp(3rem, 13vw, 6.5rem);
+  font-weight: 700; letter-spacing: -0.02em; line-height: 0.92;
+  text-transform: uppercase; margin: 0 0 0.5rem;
+}
+
+.cargo {
+  font-family: var(--display);
+  font-size: clamp(1rem, 3.4vw, 1.35rem);
+  letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--sobre-bloque-2);
+  margin: 0 0 2.75rem; max-width: 34ch;
+}
+
+.control {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  margin: 0;
+  border-top: 1px solid rgba(242,240,232,.3);
+  font-family: var(--dato);
+}
+.control > div { padding: 0.85rem 1rem 1rem 0; }
+.control dt {
+  font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ambar-bloque); margin: 0 0 0.3rem;
+}
+.control dd { margin: 0; font-size: 0.84rem; color: var(--sobre-bloque); }
+
+/* ── Índice ── */
+
+nav.indice { margin: 0 0 4rem; padding-bottom: 2rem; border-bottom: 1px solid var(--regla); }
+nav.indice h2 {
+  font-family: var(--dato); font-size: 0.7rem;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--acero); margin: 0 0 1rem;
+}
+nav.indice ol {
+  list-style: none; margin: 0; padding: 0;
+  counter-reset: nav;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.35rem 2rem;
+}
+nav.indice li { counter-increment: nav; }
+nav.indice li::before {
+  content: counter(nav, decimal-leading-zero);
+  font-family: var(--dato); font-size: 0.74rem;
+  color: var(--ambar-texto); margin-right: 0.7rem;
+}
+nav.indice a {
+  font-family: var(--display); text-transform: uppercase;
+  letter-spacing: 0.05em; font-size: 0.95rem;
+  color: var(--tinta); text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+nav.indice a:hover, nav.indice a:focus-visible { border-bottom-color: var(--ambar); }
+
+/* ── Secciones ── */
+
+main { counter-reset: sec; }
+section { counter-reset: sub; margin: 0 0 4.5rem; }
+
+section > h2 {
+  counter-increment: sec;
+  font-family: var(--display);
+  font-size: clamp(1.6rem, 5vw, 2.3rem);
+  font-weight: 700; text-transform: uppercase; line-height: 1.1;
+  color: var(--acento);
+  margin: 0 0 1.75rem; padding-bottom: 0.7rem;
+  border-bottom: 2px solid var(--acento);
+}
+section > h2::before {
+  content: counter(sec, decimal-leading-zero);
+  display: block;
+  font-family: var(--dato); font-size: 0.72rem;
+  letter-spacing: 0.2em; color: var(--ambar-texto);
+  margin-bottom: 0.55rem;
+}
+
+h3 {
+  counter-increment: sub;
+  font-family: var(--display); font-size: 1.15rem;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--tinta); margin: 2.75rem 0 0.9rem;
+}
+h3::before {
+  content: counter(sec) "." counter(sub) " ";
+  font-family: var(--dato); font-size: 0.82rem;
+  color: var(--ambar-texto); letter-spacing: 0;
+}
+
+h4 {
+  font-family: var(--display); font-size: 1.02rem;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  margin: 0 0 0.35rem;
+}
+
+p { margin: 0 0 1.15rem; max-width: 68ch; }
+
+a { color: var(--acento); text-decoration-thickness: 1px; }
+a:hover { color: var(--ambar-texto); }
+
+:focus-visible { outline: 3px solid var(--ambar); outline-offset: 2px; }
+
+abbr[title] { text-decoration: underline dotted var(--acero); cursor: help; }
+
+code, kbd {
+  font-family: var(--dato); font-size: 0.86em;
+  background: var(--papel-2); padding: 0.1em 0.35em;
+}
+
+blockquote {
+  margin: 2rem 0; padding: 0 0 0 1.5rem;
+  border-left: 3px solid var(--ambar);
+  font-size: 1.2rem; line-height: 1.5;
+  color: var(--acento); max-width: 46ch;
+}
+blockquote p { margin: 0; }
+
+/* ── Datos ── */
+
+.datos { display: grid; grid-template-columns: minmax(9rem, 14rem) 1fr; margin: 0; }
+.datos dt {
+  font-family: var(--dato); font-size: 0.72rem;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--acero);
+  padding: 0.9rem 1rem 0.9rem 0;
+  border-top: 1px solid var(--regla);
+}
+.datos dd { margin: 0; padding: 0.9rem 0; border-top: 1px solid var(--regla); }
+
+/* ── Tablas ── */
+
+.tabla-scroll { overflow-x: auto; margin: 0 0 1.5rem; }
+.tabla-scroll:focus-visible { outline: 3px solid var(--ambar); outline-offset: 4px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.97rem; min-width: 26rem; }
+caption {
+  font-family: var(--dato); font-size: 0.7rem;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--acero); text-align: left; padding-bottom: 0.8rem;
+}
+th, td {
+  text-align: left; vertical-align: top;
+  padding: 0.75rem 1rem 0.75rem 0;
+  border-bottom: 1px solid var(--regla);
+}
+thead th {
+  font-family: var(--dato); font-size: 0.68rem;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--acento); border-bottom: 2px solid var(--acento);
+}
+tbody th { font-family: var(--cuerpo); font-weight: 600; padding-right: 1.5rem; }
+td:last-child, th:last-child { padding-right: 0; }
+.fecha { font-family: var(--dato); font-size: 0.85rem; color: var(--acero); white-space: nowrap; }
+
+/* ── Acordeón ── */
+
+details { border-top: 1px solid var(--regla); }
+details:last-of-type { border-bottom: 1px solid var(--regla); }
+
+summary {
+  list-style: none; cursor: pointer; padding: 1.25rem 0;
+  font-family: var(--display); font-size: 1.12rem;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--acento);
+  display: flex; align-items: baseline; gap: 0.9rem;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: "+";
+  font-family: var(--dato); font-size: 1.1rem;
+  color: var(--ambar-texto); flex: none; width: 1ch;
+}
+details[open] > summary::before { content: "\2212"; }
+summary:hover { color: var(--ambar-texto); }
+
+.cuerpo-detalle { padding: 0 0 1.5rem 1.9rem; }
+.cuerpo-detalle p:last-child { margin-bottom: 0; }
+
+.repo { font-family: var(--dato); font-size: 0.82rem; color: var(--acero); }
+
+.estado {
+  display: inline-block;
+  font-family: var(--dato); font-size: 0.68rem;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ambar-texto);
+  border-bottom: 1px solid var(--ambar);
+  padding-bottom: 0.15rem; margin-bottom: 1rem;
+}
+
+/* ── Idiomas ── */
+
+.idiomas { list-style: none; margin: 0; padding: 0; }
+.idiomas li { margin: 0 0 1.6rem; max-width: 34rem; }
+.idiomas .fila { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 0.5rem; }
+.idiomas label { font-family: var(--display); text-transform: uppercase; letter-spacing: 0.05em; font-size: 1rem; }
+.nivel { font-family: var(--dato); font-size: 0.74rem; letter-spacing: 0.12em; color: var(--acero); }
+
+meter {
+  display: block; width: 100%; height: 0.5rem;
+  appearance: none; -webkit-appearance: none;
+  background: var(--regla);
+}
+meter::-webkit-meter-bar { background: var(--regla); border: 0; height: 0.5rem; }
+meter::-webkit-meter-optimum-value { background: var(--acento); }
+meter::-webkit-meter-suboptimum-value { background: var(--ambar); }
+meter::-moz-meter-bar { background: var(--acento); }
+
+/* ── Formulario ── */
+
+form { max-width: 34rem; }
+fieldset { border: 0; margin: 0; padding: 0; }
+legend { padding: 0; }
+
+.campo { margin: 0 0 1.4rem; }
+.campo label {
+  display: block;
+  font-family: var(--dato); font-size: 0.72rem;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--acero); margin-bottom: 0.45rem;
+}
+
+input, select, textarea {
+  width: 100%;
+  font-family: var(--cuerpo); font-size: 1rem;
+  color: var(--tinta); background: transparent;
+  border: 0; border-bottom: 1px solid var(--acero);
+  padding: 0.55rem 0;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-bottom-color: var(--ambar);
+  border-bottom-width: 2px;
+}
+input:user-invalid, textarea:user-invalid { border-bottom-color: var(--alerta); }
+textarea { resize: vertical; }
+::placeholder { color: var(--acero); opacity: 0.75; }
+
+button {
+  font-family: var(--display); font-size: 0.95rem;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 0.75rem 1.6rem;
+  border: 1px solid var(--acento);
+  background: var(--acento); color: var(--sobre-bloque);
+  cursor: pointer;
+}
+button:hover { background: var(--ambar-texto); border-color: var(--ambar-texto); }
+button.secundario { background: transparent; color: var(--acento); }
+button.secundario:hover { background: var(--acento); color: var(--sobre-bloque); }
+
+address {
+  font-style: normal;
+  font-family: var(--dato); font-size: 0.88rem;
+  margin-top: 2.5rem; padding-top: 1.5rem;
+  border-top: 1px solid var(--regla); line-height: 2;
+}
+
+/* ── Errores de formulario ── */
+
+.error {
+  margin: 0.45rem 0 0;
+  font-family: var(--dato);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--alerta);
+  max-width: none;
+}
+.error::before { content: "\26A0\FE0E  "; }
+
+input[aria-invalid="true"],
+textarea[aria-invalid="true"] { border-bottom-color: var(--alerta); border-bottom-width: 2px; }
+
+.estado-formulario {
+  margin: 0 0 1.25rem;
+  font-family: var(--dato);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--alerta);
+}
+.estado-formulario:empty { display: none; }
+.estado-formulario[data-ok] { color: var(--acento); }
+
+/* Campo trampa: fuera de pantalla, no oculto con display:none, para que
+   los bots que ignoran la visibilidad igual lo completen. */
+.trampa {
+  position: absolute;
+  left: -9999px;
+  width: 1px; height: 1px;
+  overflow: hidden;
+}
+
+.visualmente-oculto {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* ── Herramientas ── */
+
+.herramienta { margin: 0 0 2.5rem; }
+.herramienta:last-child { margin-bottom: 0; }
+
+.controles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1.25rem 2rem;
+  margin: 0 0 1.5rem;
+  align-items: end;
+}
+.controles label {
+  display: block;
+  font-family: var(--dato); font-size: 0.72rem;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--acero); margin-bottom: 0.45rem;
+}
+.controles .fila-check { display: flex; align-items: center; gap: 0.6rem; }
+.controles .fila-check label { margin: 0; }
+.controles input[type="checkbox"] { width: auto; }
+.controles input[type="range"] { width: 100%; padding: 0; accent-color: var(--acento); }
+
+.salida-clave {
+  width: 100%;
+  font-family: var(--dato);
+  font-size: clamp(0.95rem, 3.6vw, 1.25rem);
+  letter-spacing: 0.02em;
+  color: var(--tinta);
+  background: var(--papel-2);
+  border: 0; border-left: 4px solid var(--ambar);
+  padding: 1rem;
+  word-break: break-all;
+}
+
+.acciones { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1rem 0; }
+
+.medida {
+  font-family: var(--dato); font-size: 0.8rem;
+  letter-spacing: 0.04em; color: var(--acero);
+  margin: 0.5rem 0 0;
+}
+.medida[data-nivel="muy-débil"], .medida[data-nivel="débil"] { color: var(--alerta); }
+.medida[data-nivel="fuerte"], .medida[data-nivel="muy-fuerte"] { color: var(--acento); }
+
+.avisos { margin: 0.75rem 0 0; padding: 0 0 0 1.2rem; }
+.avisos li {
+  font-family: var(--dato); font-size: 0.78rem;
+  line-height: 1.6; color: var(--alerta); margin-bottom: 0.3rem;
+}
+
+.nota-seguridad {
+  font-family: var(--display); text-transform: uppercase;
+  letter-spacing: 0.06em; font-size: 1.1rem;
+  padding: 0.75rem 1rem; margin: 0 0 1.25rem;
+  border-left: 6px solid currentColor;
+  word-break: break-all;
+}
+.nota-seguridad[data-nota="A"], .nota-seguridad[data-nota="B"] { color: var(--acento); }
+.nota-seguridad[data-nota="C"] { color: var(--ambar-texto); }
+.nota-seguridad[data-nota="D"], .nota-seguridad[data-nota="F"] { color: var(--alerta); }
+
+td.ok { color: var(--acento); font-family: var(--dato); font-size: 0.8rem; white-space: nowrap; }
+td.falta { color: var(--alerta); font-family: var(--dato); font-size: 0.8rem; white-space: nowrap; }
+
+.privacidad {
+  font-family: var(--dato); font-size: 0.76rem;
+  line-height: 1.65; color: var(--acero);
+  border-left: 3px solid var(--ambar);
+  padding: 0.6rem 0 0.6rem 1rem;
+  margin: 1.5rem 0 0;
+  max-width: 60ch;
+}
+
+/* ── Panel ── */
+
+.panel {
+  background: var(--bloque); color: var(--sobre-bloque);
+  margin: 0 -1.5rem; padding: 3rem 1.5rem;
+}
+.panel-interior { max-width: 57rem; margin: 0 auto; }
+.panel h2 { color: var(--sobre-bloque); border-bottom-color: var(--ambar); }
+.panel h2::before { color: var(--ambar-bloque); }
+.panel p { color: var(--sobre-bloque-2); }
+.panel a { color: var(--ambar-bloque); }
+.panel code { background: rgba(242,240,232,.14); color: var(--sobre-bloque); }
+.panel abbr[title] { text-decoration-color: var(--sobre-bloque-2); }
+.panel caption { color: var(--ambar-bloque); }
+.panel th, .panel td { border-bottom-color: rgba(242,240,232,.22); }
+.panel thead th { color: var(--ambar-bloque); border-bottom-color: var(--ambar-bloque); }
+.panel tbody th { color: var(--sobre-bloque); }
+.panel td { color: var(--sobre-bloque-2); }
+.panel button { background: var(--ambar-bloque); border-color: var(--ambar-bloque); color: var(--tinta); }
+.panel button:hover { background: var(--sobre-bloque); border-color: var(--sobre-bloque); color: var(--tinta); }
+
+/* ── Popover y diálogo ── */
+
+[popover] {
+  max-width: 32rem; border: 0;
+  border-top: 5px solid var(--ambar);
+  background: var(--papel); color: var(--tinta);
+  padding: 2rem;
+  box-shadow: 0 1.5rem 3rem rgba(22,26,23,.28);
+}
+[popover]::backdrop { background: rgba(22,26,23,.45); }
+
+dialog {
+  max-width: 34rem; border: 0;
+  border-top: 5px solid var(--ambar);
+  background: var(--papel); color: var(--tinta);
+  padding: 2.25rem;
+  box-shadow: 0 1.5rem 3rem rgba(22,26,23,.35);
+}
+dialog::backdrop { background: rgba(34,64,47,.6); }
+dialog h2 {
+  font-family: var(--display); text-transform: uppercase;
+  letter-spacing: 0.04em; font-size: 1.3rem;
+  color: var(--acento); margin: 0 0 1rem;
+  border-bottom: 0; padding-bottom: 0;
+}
+dialog h2::before { content: none; }
+dialog p { color: var(--tinta); }
+
+/* ── Pie ── */
+
+footer {
+  margin-top: 4rem; padding-top: 1.75rem;
+  border-top: 1px solid var(--regla);
+  font-family: var(--dato); font-size: 0.78rem;
+  color: var(--acero); line-height: 1.8;
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 34rem) {
+  .datos { grid-template-columns: 1fr; }
+  .datos dt { padding-bottom: 0.2rem; }
+  .datos dd { border-top: 0; padding-top: 0; }
+  .caratula { padding-top: 2.5rem; }
+  .idiomas .fila { flex-direction: column; gap: 0.15rem; }
+}
+
+/* ── Impresión ── */
+
+@media print {
+  body { background: #fff; color: #000; font-size: 10.5pt; }
+  .caratula, .panel { background: #fff; color: #000; }
+  .caratula { border-bottom: 2px solid #000; }
+  .panel { border-top: 2px solid #000; }
+  .caratula h1, .cargo, .control dd, .control dt, .eyebrow,
+  .panel p, .panel td, .panel tbody th, .panel thead th,
+  .panel h2, .panel h2::before, .panel code { color: #000; }
+  .panel code { background: #eee; }
+  nav.indice, form, .panel button, [popover], dialog, .saltar { display: none; }
+  .tabla-scroll { overflow: visible; }
+  details { break-inside: avoid; }
+  details:not([open]) > .cuerpo-detalle { display: block; }
+  a::after { content: " (" attr(href) ")"; font-size: 0.85em; color: #444; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ── Modo oscuro ── */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --papel:         #14170F;
+    --papel-2:       #1F241C;
+    --tinta:         #E6E4D9;
+    --bloque:        #1B231C;
+    --sobre-bloque:  #E6E4D9;
+    --sobre-bloque-2:#A9B2A8;
+    --acento:        #9CC4A6;
+    --ambar:         #D9A038;
+    --ambar-texto:   #E0A93C;
+    --ambar-bloque:  #E0A93C;
+    --acero:         #9AA398;
+    --regla:         #333A32;
+    --alerta:        #E8705A;
+  }
+  button, button:hover { color: #14170F; }
+  button.secundario { color: var(--acento); }
+  button.secundario:hover { color: #14170F; }
+  .panel button, .panel button:hover { color: #14170F; }
+  [popover], dialog { background: var(--papel-2); }
+}
+</style>
+</head>
+<body>
+
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+
+<header class="caratula">
+  <div class="caratula-interior">
+    <p class="eyebrow">Perfil profesional</p>
+    <h1>Gonza</h1>
+    <p class="cargo">Ciberseguridad e infraestructura · Analista de sistemas · Docente de informática</p>
+
+    <dl class="control">
+      <div><dt>Ubicación</dt><dd>Rivera, Uruguay</dd></div>
+      <div><dt>Especialidad</dt><dd>Blue Team / SOC</dd></div>
+      <div><dt>También</dt><dd>Infraestructura y redes</dd></div>
+      <div><dt>Actualizado</dt><dd><time datetime="2026-08-30">30·08·2026</time></dd></div>
+    </dl>
+  </div>
+</header>
+
+<div class="hoja">
+
+<nav class="indice" aria-label="Secciones">
+  <h2>Contenido</h2>
+  <ol>
+    <li><a href="#perfil">Perfil</a></li>
+    <li><a href="#formacion">Formación</a></li>
+    <li><a href="#proyectos">Proyectos</a></li>
+    <li><a href="#idiomas">Idiomas</a></li>
+    <li><a href="#herramientas">Herramientas</a></li>
+    <li><a href="#contacto">Contacto</a></li>
+    <li><a href="#nota">Nota técnica</a></li>
+  </ol>
+</nav>
+
+<main id="contenido">
+
+<section id="perfil">
+  <h2>Perfil</h2>
+
+  <p>
+    Me dedico a la seguridad defensiva y a la infraestructura que hay que defender. En la práctica eso
+    significa dos trabajos que se necesitan mutuamente: diseñar y segmentar la red, y después vigilarla —
+    endurecer configuraciones, separar lo que no debería tocarse, y saber qué mirar cuando algo se comporta
+    distinto de lo esperado.
+  </p>
+
+  <p>
+    Vengo del desarrollo de sistemas, y eso cambia cómo audito: leo el código en vez de limitarme a correr
+    una herramienta contra él. También doy clase en <abbr title="Dirección General de Educación Técnico Profesional">DGETP</abbr>/UTU
+    en Rivera y Tranqueras, lo que obliga a reconstruir el porqué de cada decisión técnica en voz alta,
+    frente a alguien que va a preguntar. Enseñar y auditar son la misma habilidad usada en dos direcciones.
+  </p>
+
+  <p>
+    El terreno donde vengo aplicando esto es la industria del norte uruguayo: plantas con equipos viejos que
+    no se pueden apagar, redes que crecieron sin plan y entornos donde un corte de energía es rutina. Son las
+    condiciones reales de la infraestructura industrial, y resolverlas ahí se parece bastante a resolverlas
+    en cualquier otro lado.
+  </p>
+
+  <blockquote>
+    <p>Una red bien segmentada no evita el incidente. Evita que el incidente se convierta en la empresa entera.</p>
+  </blockquote>
+
+  <h3>Datos</h3>
+
+  <dl class="datos">
+    <dt>Base</dt>
+    <dd>Rivera, Uruguay — frontera seca con Santana do Livramento, Brasil</dd>
+
+    <dt>Formación</dt>
+    <dd>Tecnólogo en Análisis y Desarrollo de Sistemas — UTEC, programa binacional con IFSul (Brasil)</dd>
+
+    <dt>Especialización</dt>
+    <dd>Blue Team / <abbr title="Security Operations Center">SOC</abbr> — 4Geeks Academy y UTEC</dd>
+
+    <dt>Qué hago</dt>
+    <dd>Seguridad defensiva, segmentación de redes, endurecimiento de servidores y testing</dd>
+
+    <dt>Dónde lo aplico</dt>
+    <dd>Infraestructura industrial y sistemas en producción</dd>
+  </dl>
+</section>
+
+<section id="formacion">
+  <h2>Formación</h2>
+
+  <p>
+    La base es el tecnólogo binacional de UTEC, cursado con IFSul del lado brasileño. Sobre eso fui
+    apilando especialización en seguridad defensiva y testing, que son las dos áreas donde termino
+    trabajando en la práctica.
+  </p>
+
+  <div class="tabla-scroll" tabindex="0" role="region" aria-label="Tabla de credenciales">
+    <table>
+      <caption>Credenciales</caption>
+      <thead>
+        <tr>
+          <th scope="col">Credencial</th>
+          <th scope="col">Institución</th>
+          <th scope="col">Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Tecnólogo en Análisis y Desarrollo de Sistemas</th>
+          <td>UTEC — IFSul</td>
+          <td class="fecha"><time datetime="2025-09">09 · 2025</time></td>
+        </tr>
+        <tr>
+          <th scope="row">Especialista en Ciberseguridad (320 h, aval del Florida DOE)</th>
+          <td>4Geeks Academy / UTEC</td>
+          <td class="fecha"><time datetime="2026-08-23">23 · 08 · 2026</time></td>
+        </tr>
+        <tr>
+          <th scope="row">Ethical Hacking Professional Certificate</th>
+          <td>IBM</td>
+          <td class="fecha">—</td>
+        </tr>
+        <tr>
+          <th scope="row">Foundations of Cybersecurity</th>
+          <td>Google</td>
+          <td class="fecha">—</td>
+        </tr>
+        <tr>
+          <th scope="row">Certificación en testing de software (92 %)</th>
+          <td>Jóvenes a Programar / <abbr title="Cámara Uruguaya de Tecnologías de la Información">CUTI</abbr></td>
+          <td class="fecha">—</td>
+        </tr>
+        <tr>
+          <th scope="row">Certificación ISC²</th>
+          <td>ISC²</td>
+          <td class="fecha">—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Experiencia</h3>
+
+  <article>
+    <h4>Perceptiva — Brasil · Pasantía remota</h4>
+    <p class="repo">Seis meses · 2023–2024</p>
+    <p>
+      Integraciones de <abbr title="Application Programming Interface">API</abbr> sobre la plataforma Axway,
+      procesos <abbr title="Extract, Transform, Load">ETL</abbr> en Python y sincronización de inventario entre
+      <abbr title="Systems, Applications and Products">SAP</abbr> y una plataforma
+      <abbr title="Software as a Service">SaaS</abbr>. Trabajo enteramente remoto y en portugués, con un equipo
+      del otro lado de la frontera. Cerré con carta de recomendación firmada por el
+      <abbr title="Chief Operating Officer">COO</abbr>.
+    </p>
+  </article>
+
+  <article>
+    <h4>DGETP / UTU — Rivera y Tranqueras · Docencia</h4>
+    <p>
+      Ingeniería de software, sistemas operativos, inteligencia artificial, testing y desarrollo de
+      videojuegos. Armado de material propio y de prácticas de laboratorio.
+    </p>
+  </article>
+</section>
+
+<section id="proyectos">
+  <h2>Proyectos</h2>
+
+  <p>
+    Cada proyecto resuelve un problema distinto de infraestructura y seguridad: uno es segmentación sobre
+    una red en producción que no se puede detener, otro es diseño desde cero con separación correcta desde
+    el primer día, y el tercero es disponibilidad de un servicio en condiciones adversas. El sector donde
+    los apliqué es el forestal, pero los problemas son los de cualquier planta.
+  </p>
+
+  <details name="proyectos" open>
+    <summary>Segmentación sobre red en producción</summary>
+    <div class="cuerpo-detalle">
+      <p class="estado">Segmentación · VLAN · migración por etapas</p>
+      <p>
+        Aserradero Cuchilla Negra S.A. Relevamiento de una red que creció sin plan, y rediseño para separar
+        el tráfico de planta del administrativo sin detener la producción. Lo difícil no es el diseño: es la
+        migración por etapas sobre algo que ya está corriendo.
+      </p>
+      <p class="repo">GonzaBot/cuchilla-negra-industrial-network</p>
+    </div>
+  </details>
+
+  <details name="proyectos">
+    <summary>Diseño de red desde cero</summary>
+    <div class="cuerpo-detalle">
+      <p class="estado">Direccionamiento · menor privilegio · greenfield</p>
+      <p>
+        Pinar del Norte S.A., planta nueva. Sin infraestructura heredada que condicione las decisiones, se
+        puede aplicar el principio de menor privilegio a nivel de red desde el primer día, en vez de
+        reconstruirlo después a la fuerza.
+      </p>
+    </div>
+  </details>
+
+  <details name="proyectos">
+    <summary>Despliegue y disponibilidad en Linux</summary>
+    <div class="cuerpo-detalle">
+      <p class="estado">Docker · systemd · alta disponibilidad</p>
+      <p>
+        Aplicación Flask containerizada sobre un servidor Linux remoto. Política de reinicio de Docker y
+        unidad systemd verificadas: el servicio vuelve solo después de un corte de energía. La disponibilidad
+        también es seguridad, y en zona rural el corte no es una hipótesis de manual.
+      </p>
+    </div>
+  </details>
+</section>
+
+<section id="idiomas">
+  <h2>Idiomas</h2>
+
+  <p>
+    Crecer en Rivera significa crecer en dos idiomas a la vez. El portugués no lo estudié: lo hablo desde
+    los cinco años, del mismo modo que el español.
+  </p>
+
+  <ul class="idiomas">
+    <li>
+      <div class="fila">
+        <label for="es">Español</label>
+        <span class="nivel">Nativo</span>
+      </div>
+      <meter id="es" value="6" min="0" max="6" low="3" high="5" optimum="6">Nativo</meter>
+    </li>
+    <li>
+      <div class="fila">
+        <label for="pt">Portugués</label>
+        <span class="nivel">Fluido desde los 5 años</span>
+      </div>
+      <meter id="pt" value="6" min="0" max="6" low="3" high="5" optimum="6">Fluido</meter>
+    </li>
+    <li>
+      <div class="fila">
+        <label for="en">Inglés</label>
+        <span class="nivel">B2 · en camino a C1</span>
+      </div>
+      <meter id="en" value="4" min="0" max="6" low="3" high="5" optimum="6">B2</meter>
+    </li>
+  </ul>
+</section>
+
+<section id="herramientas">
+  <h2>Herramientas</h2>
+
+  <p>
+    Dos cosas que uso y que dejo acá funcionando, no descritas. La primera corre
+    entera en tu navegador; la segunda necesita el servidor. La diferencia entre
+    ambas es justamente el tema del que trata la nota técnica del final.
+  </p>
+
+  <div class="herramienta">
+    <h3>Generador de contraseñas</h3>
+
+    <p>
+      Usa <code>crypto.getRandomValues</code>, no <code>Math.random</code>, y descarta
+      valores para evitar el sesgo de módulo: si tomás un byte de 0 a 255 y hacés
+      resto sobre un alfabeto de 58, los primeros caracteres salen más seguido. Con
+      pocas contraseñas no se nota; con muchas, reduce el espacio de búsqueda.
+    </p>
+
+    <div class="controles">
+      <div>
+        <label for="clave-tipo">Tipo</label>
+        <select id="clave-tipo">
+          <option value="clave">Contraseña</option>
+          <option value="frase">Frase de paso</option>
+        </select>
+      </div>
+      <div>
+        <label for="clave-largo">Largo: <span id="clave-largo-valor">20</span></label>
+        <input id="clave-largo" type="range" min="8" max="64" value="20">
+      </div>
+      <div class="fila-check">
+        <input id="clave-simbolos" type="checkbox" checked>
+        <label for="clave-simbolos">Símbolos</label>
+      </div>
+    </div>
+
+    <label class="visualmente-oculto" for="clave-salida">Contraseña generada</label>
+    <textarea id="clave-salida" class="salida-clave" rows="2" readonly></textarea>
+    <p id="clave-medida" class="medida"></p>
+
+    <div class="acciones">
+      <button type="button" id="clave-generar">Generar otra</button>
+      <button type="button" id="clave-copiar" class="secundario">Copiar</button>
+    </div>
+
+    <h3>Probá la tuya</h3>
+    <p>
+      Pegá una contraseña que ya uses. Se evalúa contra patrones conocidos y se
+      estima su entropía descontando lo que sea predecible.
+    </p>
+
+    <div class="campo">
+      <label for="clave-propia">Contraseña a evaluar</label>
+      <input id="clave-propia" type="text" autocomplete="off" autocapitalize="off"
+             spellcheck="false" placeholder="No se envía a ningún lado">
+    </div>
+    <div id="clave-propia-medida"></div>
+
+    <p class="privacidad">
+      Nada de esto sale de tu navegador. No hay <code>fetch</code>, no hay
+      almacenamiento, no hay registro, y el campo se vacía al salir de la página.
+      Podés verificarlo: abrí las herramientas del navegador, pestaña Red, y mirá
+      que no aparezca ninguna petición mientras escribís. Una herramienta de
+      contraseñas que manda algo al servidor no es una herramienta de contraseñas.
+    </p>
+  </div>
+
+  <div class="herramienta">
+    <h3>Analizador de cabeceras de seguridad</h3>
+
+    <p>
+      Pedí una dirección y el servidor revisa qué cabeceras de seguridad devuelve:
+      CSP, HSTS, protección contra sniffing de tipo, política de referente. Es la
+      versión automatizada de lo que hay que mirar primero en cualquier sitio.
+    </p>
+
+    <p>
+      Este sí necesita backend, y por una razón concreta: el navegador no puede leer
+      las cabeceras de otro dominio, se lo impide la política de origen cruzado.
+      Pero un servidor que descarga una URL elegida por el usuario es un SSRF de
+      manual, así que valida el esquema, resuelve el DNS a mano, rechaza toda
+      dirección que no sea pública, conecta contra la IP ya verificada y no sigue
+      redirecciones.
+    </p>
+
+    <form id="form-cabeceras">
+      <div class="campo">
+        <label for="cabeceras-url">Dirección a analizar</label>
+        <input id="cabeceras-url" type="url" placeholder="https://ejemplo.com"
+               autocomplete="off" spellcheck="false">
+      </div>
+      <p><button type="submit">Analizar</button></p>
+    </form>
+
+    <div id="cabeceras-salida"></div>
+  </div>
+</section>
+
+<section id="contacto">
+  <h2>Contacto</h2>
+
+  <p>
+    Si tenés una propuesta, una red que revisar o una capacitación que armar, escribime. El formulario
+    valida en el navegador, sin librerías.
+  </p>
+
+  <!-- Reemplazar action por un endpoint propio antes de publicar.
+       No usar mailto: expone la dirección a scrapers y depende del cliente de correo local. -->
+  <form id="form-contacto" action="#" method="post">
+    <fieldset>
+      <div class="trampa" aria-hidden="true">
+        <label for="sitio-web">No completar este campo</label>
+        <input id="sitio-web" name="sitio-web" type="text" tabindex="-1" autocomplete="off">
+      </div>
+
+      <div class="campo">
+        <label for="nombre">Nombre</label>
+        <input id="nombre" name="nombre" type="text" required autocomplete="name" placeholder="Nombre y apellido">
+      </div>
+
+      <div class="campo">
+        <label for="mail">Correo</label>
+        <input id="mail" name="mail" type="email" required autocomplete="email" placeholder="vos@empresa.com">
+      </div>
+
+      <div class="campo">
+        <label for="motivo">Motivo</label>
+        <input id="motivo" name="motivo" list="motivos" required autocomplete="off" placeholder="Elegí uno o escribí el tuyo">
+        <datalist id="motivos">
+          <option value="Propuesta laboral"></option>
+          <option value="Auditoría o pentest"></option>
+          <option value="Diseño de red industrial"></option>
+          <option value="Capacitación o docencia"></option>
+        </datalist>
+      </div>
+
+      <div class="campo">
+        <label for="urgencia">Plazo</label>
+        <select id="urgencia" name="urgencia">
+          <optgroup label="Sin apuro">
+            <option>Cuando se pueda</option>
+            <option>Esta semana</option>
+          </optgroup>
+          <optgroup label="Con apuro">
+            <option>Hoy</option>
+            <option>Incidente en curso</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="campo">
+        <label for="mensaje">Mensaje</label>
+        <textarea id="mensaje" name="mensaje" rows="5" required minlength="20"
+                  placeholder="Contame el contexto: qué necesitás y para cuándo."></textarea>
+      </div>
+
+      <p>
+        <button type="submit">Enviar</button>
+        <button type="reset" class="secundario">Limpiar</button>
+      </p>
+    </fieldset>
+  </form>
+
+  <address>
+    GitHub · <a href="https://github.com/GonzaBot" rel="noopener noreferrer external" referrerpolicy="strict-origin-when-cross-origin">github.com/GonzaBot</a><br>
+    LinkedIn · <a href="https://www.linkedin.com/in/gonzardem" rel="noopener noreferrer external" referrerpolicy="strict-origin-when-cross-origin">linkedin.com/in/gonzardem</a>
+  </address>
+</section>
+
+<section id="nota" class="panel">
+  <div class="panel-interior">
+    <h2>Nota técnica</h2>
+
+    <p>
+      La página está construida con el mismo criterio que aplico a un sistema en producción: superficie
+      de ataque mínima y nada que dependa de un tercero. No carga JavaScript, no hace peticiones externas
+      — ni fuentes, ni CDN, ni analítica — no usa cookies y no almacena nada del lado del cliente. La
+      tipografía sale de familias del sistema justamente para no confiarle la integridad de la página a
+      un servidor ajeno.
+    </p>
+
+    <div class="tabla-scroll" tabindex="0" role="region" aria-label="Tabla de medidas de seguridad">
+      <table>
+        <caption>Medidas aplicadas</caption>
+        <thead>
+          <tr>
+            <th scope="col">Medida</th>
+            <th scope="col">Qué mitiga</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row"><code>default-src 'none'</code></th>
+            <td>Ejecución e inclusión de recursos no previstos</td>
+          </tr>
+          <tr>
+            <th scope="row"><code>base-uri 'none'</code></th>
+            <td>Secuestro de rutas relativas por inyección de <code>&lt;base&gt;</code></td>
+          </tr>
+          <tr>
+            <th scope="row"><code>form-action 'self'</code></th>
+            <td>Redirección del envío del formulario a un destino externo</td>
+          </tr>
+          <tr>
+            <th scope="row"><code>referrerpolicy</code> y <code>rel="noopener"</code></th>
+            <td>Filtrado de la URL de origen y acceso a <code>window.opener</code></td>
+          </tr>
+          <tr>
+            <th scope="row">Cero recursos de terceros</th>
+            <td>Compromiso de la cadena de suministro</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Falta lo que no se puede resolver desde el documento: <code>frame-ancestors</code> contra
+      clickjacking, <abbr title="HTTP Strict Transport Security">HSTS</abbr> y
+      <code>X-Content-Type-Options</code> requieren cabeceras
+      <abbr title="HyperText Transfer Protocol">HTTP</abbr> y se configuran en el servidor. Ponerlas en una
+      etiqueta <code>meta</code> no hace nada: el navegador las ignora, y creer que están puestas es peor
+      que saber que faltan.
+    </p>
+
+    <p>
+      <button commandfor="dialogo-alcance" command="show-modal">Sobre el alcance de esto</button>
+    </p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>
+    Gonza · Rivera, Uruguay<br>
+    Documento actualizado el <time datetime="2026-08-30">30 de agosto de 2026</time> · sin JavaScript, sin recursos externos, sin cookies
+  </p>
+</footer>
+
+</div>
+
+<!-- Fuera de .panel a propósito: ahí adentro los selectores del panel
+     le ganaban en especificidad y el texto quedaba ilegible. -->
+<dialog id="dialogo-alcance">
+  <h2>Qué protege y qué no</h2>
+  <p>
+    Nada de lo anterior convierte a una página estática en un sistema seguro, porque una página
+    estática casi no tiene qué proteger: no hay sesión, no hay base de datos, no hay entrada del
+    usuario que se procese.
+  </p>
+  <p>
+    El valor está en el hábito. Las mismas decisiones — no confiar en terceros, declarar explícitamente
+    lo permitido, distinguir lo que se resuelve en el documento de lo que se resuelve en el servidor —
+    son las que importan cuando sí hay algo en juego.
+  </p>
+  <p>
+    <button commandfor="dialogo-alcance" command="close" autofocus>Cerrar</button>
+  </p>
+</dialog>
+
+<script src="js/validacion.js"></script>
+<script src="js/interfaz.js"></script>
+<script src="js/claves.js"></script>
+<script src="js/herramientas.js"></script>
+<script src="js/conectar-formulario.js"></script>
+
+</body>
+</html>

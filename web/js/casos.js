@@ -1,0 +1,346 @@
+/* casos.js — GENERADO AUTOMÁTICAMENTE. No editar a mano.
+   Fuente: spec/casos.json
+   Regenerar: python3 herramientas/generar_casos_js.py
+*/
+window.CASOS_COMPARTIDOS = {
+  "version": 1,
+  "descripcion": "Contrato de validación compartido entre validacion.js (navegador) y servidor/validacion.py (Flask). Fuente única: si un lado cambia sin el otro, alguna suite se pone roja.",
+  "normalizar": [
+    {
+      "entrada": "  hola  ",
+      "esperado": "hola",
+      "nota": "recorta extremos"
+    },
+    {
+      "entrada": "hola     mundo",
+      "esperado": "hola mundo",
+      "nota": "colapsa espacios"
+    },
+    {
+      "entrada": "hola\n\t mundo",
+      "esperado": "hola mundo",
+      "nota": "saltos y tabs a espacio"
+    },
+    {
+      "entrada": "a\u0000b\u0007c",
+      "esperado": "abc",
+      "nota": "controles C0"
+    },
+    {
+      "entrada": "a​b﻿c",
+      "esperado": "abc",
+      "nota": "ancho cero"
+    },
+    {
+      "entrada": "factura‮gpj.exe",
+      "esperado": "facturagpj.exe",
+      "nota": "Trojan Source"
+    },
+    {
+      "entrada": "a⁦b⁩c",
+      "esperado": "abc",
+      "nota": "aisladores bidi"
+    },
+    {
+      "entrada": " Añón  Gonzáles ",
+      "esperado": "Añón Gonzáles",
+      "nota": "conserva acentos"
+    },
+    {
+      "entrada": null,
+      "esperado": "",
+      "nota": "nulo"
+    },
+    {
+      "entrada": 42,
+      "esperado": "",
+      "nota": "no es texto"
+    }
+  ],
+  "correo": [
+    {
+      "entrada": "gonza@empresa.com.uy",
+      "esperado": true
+    },
+    {
+      "entrada": "g+cv@mail.utec.edu.uy",
+      "esperado": true
+    },
+    {
+      "entrada": "gonzaempresa.com",
+      "esperado": false,
+      "nota": "sin arroba"
+    },
+    {
+      "entrada": "a@b@c.com",
+      "esperado": false,
+      "nota": "doble arroba"
+    },
+    {
+      "entrada": "gon za@mail.com",
+      "esperado": false,
+      "nota": "espacio"
+    },
+    {
+      "entrada": "gonza@localhost",
+      "esperado": false,
+      "nota": "dominio sin punto"
+    },
+    {
+      "entrada": ".gonza@mail.com",
+      "esperado": false
+    },
+    {
+      "entrada": "gonza.@mail.com",
+      "esperado": false
+    },
+    {
+      "entrada": "",
+      "esperado": false
+    },
+    {
+      "entrada": null,
+      "esperado": false
+    }
+  ],
+  "inyeccion": [
+    {
+      "entrada": "hola\nBcc: victima@mail.com",
+      "esperado": true,
+      "nota": "LF crudo"
+    },
+    {
+      "entrada": "hola\r\nCc: otro@mail.com",
+      "esperado": true,
+      "nota": "CRLF crudo"
+    },
+    {
+      "entrada": "hola%0aBcc:%20x@y.com",
+      "esperado": true,
+      "nota": "LF codificado"
+    },
+    {
+      "entrada": "hola%0D%0ACc: x@y.com",
+      "esperado": true,
+      "nota": "CRLF codificado"
+    },
+    {
+      "entrada": "Content-Type: text/html",
+      "esperado": true
+    },
+    {
+      "entrada": "bcc: alguien@mail.com",
+      "esperado": true
+    },
+    {
+      "entrada": "MIME-Version: 1.0",
+      "esperado": true
+    },
+    {
+      "entrada": "BCC: x@y.com",
+      "esperado": true,
+      "nota": "insensible a mayúsculas"
+    },
+    {
+      "entrada": "Necesito una auditoría de red",
+      "esperado": false
+    },
+    {
+      "entrada": "Presupuesto: 3 VLAN y 2 switches",
+      "esperado": false,
+      "nota": "termina en 'to:'"
+    },
+    {
+      "entrada": "Necesito ayuda con Content-Type en una API",
+      "esperado": false,
+      "nota": "sin dos puntos pegados"
+    },
+    {
+      "entrada": null,
+      "esperado": false
+    }
+  ],
+  "escapar": [
+    {
+      "entrada": "<script>alert(1)</script>",
+      "esperado": "&lt;script&gt;alert(1)&lt;/script&gt;"
+    },
+    {
+      "entrada": "dijo \"hola\" y 'chau'",
+      "esperado": "dijo &quot;hola&quot; y &#39;chau&#39;"
+    },
+    {
+      "entrada": "a & b",
+      "esperado": "a &amp; b"
+    },
+    {
+      "entrada": "&lt;",
+      "esperado": "&amp;lt;"
+    },
+    {
+      "entrada": "red industrial VLAN 10",
+      "esperado": "red industrial VLAN 10"
+    },
+    {
+      "entrada": null,
+      "esperado": ""
+    }
+  ],
+  "formulario": [
+    {
+      "nota": "envío legítimo",
+      "datos": {
+        "nombre": "Gonza Rodríguez",
+        "mail": "gonza@empresa.com.uy",
+        "motivo": "Auditoría de red",
+        "mensaje": "Necesito segmentar la red de planta del aserradero."
+      },
+      "opciones": {
+        "honeypot": "",
+        "msTranscurridos": 8000,
+        "msMinimos": 3000
+      },
+      "valido": true,
+      "codigos": []
+    },
+    {
+      "nota": "campo obligatorio vacío",
+      "datos": {
+        "nombre": "   ",
+        "mail": "gonza@empresa.com.uy",
+        "motivo": "Auditoría de red",
+        "mensaje": "Necesito segmentar la red de planta del aserradero."
+      },
+      "opciones": {
+        "honeypot": "",
+        "msTranscurridos": 8000,
+        "msMinimos": 3000
+      },
+      "valido": false,
+      "codigos": [
+        "requerido"
+      ]
+    },
+    {
+      "nota": "correo inválido",
+      "datos": {
+        "nombre": "Gonza",
+        "mail": "gonza@localhost",
+        "motivo": "Auditoría de red",
+        "mensaje": "Necesito segmentar la red de planta del aserradero."
+      },
+      "opciones": {
+        "honeypot": "",
+        "msTranscurridos": 8000,
+        "msMinimos": 3000
+      },
+      "valido": false,
+      "codigos": [
+        "correo_invalido"
+      ]
+    },
+    {
+      "nota": "mensaje corto",
+      "datos": {
+        "nombre": "Gonza",
+        "mail": "gonza@empresa.com.uy",
+        "motivo": "Auditoría de red",
+        "mensaje": "hola"
+      },
+      "opciones": {
+        "honeypot": "",
+        "msTranscurridos": 8000,
+        "msMinimos": 3000
+      },
+      "valido": false,
+      "codigos": [
+        "longitud"
+      ]
+    },
+    {
+      "nota": "inyección de cabecera en un campo",
+      "datos": {
+        "nombre": "Gonza",
+        "mail": "gonza@empresa.com.uy",
+        "motivo": "Trabajo%0aBcc: victima@mail.com",
+        "mensaje": "Necesito segmentar la red de planta del aserradero."
+      },
+      "opciones": {
+        "honeypot": "",
+        "msTranscurridos": 8000,
+        "msMinimos": 3000
+      },
+      "valido": false,
+      "codigos": [
+        "inyeccion"
+      ]
+    },
+    {
+      "nota": "honeypot lleno",
+      "datos": {
+        "nombre": "Gonza",
+        "mail": "gonza@empresa.com.uy",
+        "motivo": "Auditoría de red",
+        "mensaje": "Necesito segmentar la red de planta del aserradero."
+      },
+      "opciones": {
+        "honeypot": "bot",
+        "msTranscurridos": 8000,
+        "msMinimos": 3000
+      },
+      "valido": false,
+      "codigos": [
+        "honeypot"
+      ]
+    },
+    {
+      "nota": "más rápido que un humano, con datos válidos",
+      "datos": {
+        "nombre": "Gonza",
+        "mail": "gonza@empresa.com.uy",
+        "motivo": "Auditoría de red",
+        "mensaje": "Necesito segmentar la red de planta del aserradero."
+      },
+      "opciones": {
+        "honeypot": "",
+        "msTranscurridos": 400,
+        "msMinimos": 3000
+      },
+      "valido": false,
+      "codigos": [
+        "demasiado_rapido"
+      ]
+    },
+    {
+      "nota": "el umbral temporal no debe tapar errores de campo",
+      "datos": {
+        "nombre": "",
+        "mail": "no-es-un-correo",
+        "motivo": "Auditoría de red",
+        "mensaje": "Necesito segmentar la red de planta del aserradero."
+      },
+      "opciones": {
+        "honeypot": "",
+        "msTranscurridos": 200,
+        "msMinimos": 3000
+      },
+      "valido": false,
+      "codigos": [
+        "requerido",
+        "correo_invalido"
+      ]
+    },
+    {
+      "nota": "datos ausentes",
+      "datos": {},
+      "opciones": {},
+      "valido": false,
+      "codigos": [
+        "requerido",
+        "requerido",
+        "requerido",
+        "requerido"
+      ]
+    }
+  ]
+};
