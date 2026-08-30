@@ -1,9 +1,6 @@
 # bastion-cv
 
-[![Pruebas](https://github.com/TU-USUARIO/bastion-cv/actions/workflows/ci.yml/badge.svg)](https://github.com/TU-USUARIO/bastion-cv/actions/workflows/ci.yml)
-
-> Reemplazar `TU-USUARIO` por el usuario real de GitHub antes de publicar,
-> para que el badge apunte al workflow correcto.
+[![Pruebas](https://github.com/GonzaBot/bastion-cv/actions/workflows/ci.yml/badge.svg)](https://github.com/GonzaBot/bastion-cv/actions/workflows/ci.yml)
 
 **El objetivo de este proyecto no es "una página de CV con algunos cuidados
 de seguridad" — es al revés.** La idea de fondo fue construir una aplicación
