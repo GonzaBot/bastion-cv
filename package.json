@@ -9,6 +9,6 @@
     "test": "node herramientas/correr_pruebas_node.js"
   },
   "devDependencies": {
-    "jsdom": "24.1.3"
+    "jsdom": "30.1.3"
   }
 }
